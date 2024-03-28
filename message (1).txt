@@ -1,4 +1,3 @@
-```Python
 import random as rand
 
 inventory = []
@@ -117,4 +116,3 @@ def choose():
             break
         else:
             print("Ogiltig input")
-```
