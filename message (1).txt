@@ -1,0 +1,120 @@
+```Python
+import random as rand
+
+inventory = []
+
+class Items:
+    def __init__(self, name, bonus):
+        self.name = name
+        self.str_bonus = bonus
+
+class Stats:
+    def __init__(self, strength):
+        self.strength = strength
+
+class Player(Stats):
+    lvl = 1
+    hp = 10
+
+class Dörr:
+    def bestäm(self):
+        best_tal = rand.randint(1,10)
+        if best_tal > 8:
+            fall = skapa_kista()
+        elif best_tal < 6:
+            fall = skapa_monster()
+        else:
+            fall = skapa_fälla()
+        return fall
+    
+item_names = ["Bracelet", "Necklace", "Sword", "Battleaxe", "Sheild", "Chestplate", "Magic Scroll", "Bow", "Spear", "Dagger"]
+    
+def skapa_monster():
+    monstret = Stats(rand.randint(0,10))
+    return monstret
+
+def skapa_kista():
+    item = skapa_item()
+    if len(inventory) < 5:
+        inventory.append(item)
+    else:
+        while True:
+            val = input("Ditt inventory är fullt, vill du byta ut ett item (1) eller lämna kvar det (2)? -> ")
+            if val == 1:
+                print(inventory)
+                while True:
+                    try:
+                        valda_item = int(input("Välj vilken index du vill byta ut med (0,4)")) #Om vi har tid ändrar vi så att vi kan skriva namnet på itemet
+                        if valda_item > 5:
+                            print("Du har inte så många items.")
+                        else:
+                            break
+                    except ValueError:
+                        print("Ogiltig input!")
+                inventory.pop[valda_item]
+                inventory.append[item]
+                break
+            else:
+                print("Ogiltigt input")
+            
+            
+def skapa_fälla():
+    return rand.randint(1,5)
+
+def skapa_item():
+    index_val = rand.randint(0,9)
+    skapade_item = Items(item_names[index_val], rand.randint(1,4))
+    return skapade_item
+
+def lvl_hp_kolla(self):
+    if self.hp == 0:
+        ret_tal =1
+    elif self.lvl == 10:
+        ret_tal = 2
+    else:
+        ret_tal = 3
+    return ret_tal
+
+def skapa_dörr(choice):
+    dörr_1 = Dörr.bestäm()
+    dörr_2 = Dörr.bestäm()
+    dörr_3 = Dörr.bestäm()
+    if choice == 1:
+        return dörr_1
+    elif choice == 2:
+        return dörr_2
+    else: 
+        return dörr_3
+    
+def open_door():
+    while True:
+        try:
+            val = int(input("Vilken dörr vill du öppna (1,2,3)? -> "))
+            if val > 3:
+                continue
+            break
+        except ValueError:
+            print("Ogiltig input!")
+    skapa_dörr(val)
+
+def kolla_inventory():
+    for index in inventory: print(f"Ditt inventory: {inventory(index)}")
+
+def visa_egenskaper(self):
+    print("Din spelares styrka är {self.strength} och din spelares HP är {self.}")
+
+def choose():
+    while True:
+        val = input("Vad vill du göra? Öppna en dörr(1)? Kolla ditt inventory(2)? Eller visa dina egenskaper(3)? -> ")
+        if input == 1:
+            open_door()
+            break
+        elif input == 2:
+            kolla_inventory()
+            break
+        elif input == 3:
+            visa_egenskaper()
+            break
+        else:
+            print("Ogiltig input")
+```
