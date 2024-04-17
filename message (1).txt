@@ -1,72 +1,135 @@
 import random as rand
 
-inventory = []
+class Colors:
+    red = "\u001b[31m"
+    yellow = "\u001b[33m"
+    green = "\u001b[32m"
+    bold = "\u001b[1m"
+    reverse = "\u001b[7m"
+    background = "\u001b[37;47"
+    end = "\u001b[0m"
+
 
 class Items:
-    def __init__(self, name, bonus):
+    def __init__(self, name, attack_bonus, defence_bonus):
         self.name = name
-        self.str_bonus = bonus
+        self.str_bonus = attack_bonus
+        self.def_bonus = defence_bonus
+
 
 class Stats:
-    def __init__(self, strength):
+    def __init__(self, strength, defence):
         self.strength = strength
+        self.defence = defence
+
 
 class Player(Stats):
     lvl = 1
     hp = 10
+    inventory = []
+
 
 class Dörr:
-    def bestäm(self):
+    def bestäm(spelare):
         best_tal = rand.randint(1,10)
-        if best_tal > 8:
-            fall = skapa_kista()
+        if best_tal > 6:
+            fall = 1
         elif best_tal < 6:
-            fall = skapa_monster()
+            fall = 2
         else:
-            fall = skapa_fälla()
+            fall = 3
         return fall
     
+
 item_names = ["Bracelet", "Necklace", "Sword", "Battleaxe", "Sheild", "Chestplate", "Magic Scroll", "Bow", "Spear", "Dagger"]
     
-def skapa_monster():
-    monstret = Stats(rand.randint(0,10))
-    return monstret
 
-def skapa_kista():
+def skapa_monster(spelare):
+    if spelare.lvl < 5:
+        monstret = Stats(rand.randint(5,10),rand.randint(5,10))
+    elif spelare.lvl < 8:
+        monstret = Stats(rand.randint(8,15),rand.randint(8,15))
+    else:
+         monstret = Stats(rand.randint(10,18),rand.randint(10,18))
+    print(f"\nDu stöter på ett monster bakom dörren den har styrkan {monstret.strength} och försvaret {monstret.defence}")
+    val = input("Vill du anfalla mot monstret(1) eller försvara mot monstrets(2)")
+    if val == "1":    
+        if spelare.strength > monstret.defence:
+            spelare.lvl += 1
+            print("Du var starkare än monstret och ökar din lvl med 1\n")
+        elif spelare.strength < monstret.defence:
+            spelare.hp -=1
+            print("Du var svagare än monstret och förlorar då 1 hp\n")
+        else:
+            spelare.hp -=1
+            spelare.lvl += 1
+            print("Du och monstret var lika starka och du förlorar 1 hp men ökar din lvl med 1\n")
+        
+    elif val == "2":
+        if spelare.defence > monstret.strength:
+            spelare.lvl += 1
+            print("Du var starkare än monstret och ökar din lvl med 1\n")
+        elif spelare.defence < monstret.strength:
+            spelare.hp -=1
+            print("Du var svagare än monstret och förlorar då 1 hp\n")
+        else:
+            spelare.hp -=1
+            spelare.lvl += 1
+            print("Du och monstret var lika starka och du förlorar 1 hp men ökar din lvl med 1\n")
+    else:
+        print("Ogiltig input!")
+                
+
+
+def skapa_kista(spelare):
     item = skapa_item()
-    if len(inventory) < 5:
-        inventory.append(item)
+    print(f"\nDu har hittat ett item! Ditt item är <<{item.name}>> STR bonus är +{item.str_bonus} och Def bonus är +{item.def_bonus}.\n")
+    if len(spelare.inventory) < 5:
+        spelare.strength += item.str_bonus
+        spelare.defence += item.def_bonus
+        spelare.inventory.append(item)
     else:
         while True:
+            print("Ditt inventory:")
+            for item in spelare.inventory: 
+                    print(f"  > {item.name} ({item.str_bonus})(str) ({item.def_bonus})(def)")
             val = input("Ditt inventory är fullt, vill du byta ut ett item (1) eller lämna kvar det (2)? -> ")
-            if val == 1:
-                print(inventory)
+            if val == "1":
                 while True:
                     try:
-                        valda_item = int(input("Välj vilken index du vill byta ut med (0,4)")) #Om vi har tid ändrar vi så att vi kan skriva namnet på itemet
-                        if valda_item > 5:
+                        valda_item = int(input("Välj vilken index du vill byta ut med (0-4) -> ")) #Om vi har tid ändrar vi så att vi kan skriva namnet på itemet
+                        if valda_item > 5 or valda_item<0:
                             print("Du har inte så många items.")
                         else:
                             break
                     except ValueError:
-                        print("Ogiltig input!")
-                inventory.pop[valda_item]
-                inventory.append[item]
+                        print(f"{Colors.bold + Colors.red}Ogiltig input!{Colors.end}")
+                spelare.strength -= spelare.inventory[valda_item].str_bonus
+                spelare.defence -= spelare.inventory[valda_item].def_bonus
+                spelare.inventory.pop(valda_item)
+                spelare.inventory.append(item)
+                spelare.strength += item.str_bonus
+                spelare.defence += item.def_bonus
                 break
-            else:
-                print("Ogiltigt input")
-            
-            
-def skapa_fälla():
-    return rand.randint(1,5)
+                
+
+        
+                
+
+def skapa_fälla(spelare):
+    skada = rand.randint(1,3)
+    spelare.hp -= (skada)
+    print(f"\nDu hamnar i en fälla och förlorar {skada} hp\n")
+
 
 def skapa_item():
     index_val = rand.randint(0,9)
-    skapade_item = Items(item_names[index_val], rand.randint(1,4))
+    skapade_item = Items(item_names[index_val], rand.randint(1,4), rand.randint(1,4))
     return skapade_item
 
+
 def lvl_hp_kolla(self):
-    if self.hp == 0:
+    if self.hp <1:
         ret_tal =1
     elif self.lvl == 10:
         ret_tal = 2
@@ -74,10 +137,11 @@ def lvl_hp_kolla(self):
         ret_tal = 3
     return ret_tal
 
-def skapa_dörr(choice):
-    dörr_1 = Dörr.bestäm()
-    dörr_2 = Dörr.bestäm()
-    dörr_3 = Dörr.bestäm()
+
+def skapa_dörr(choice, spelare):
+    dörr_1 = Dörr.bestäm(spelare)
+    dörr_2 = Dörr.bestäm(spelare)
+    dörr_3 = Dörr.bestäm(spelare)
     if choice == 1:
         return dörr_1
     elif choice == 2:
@@ -85,34 +149,70 @@ def skapa_dörr(choice):
     else: 
         return dörr_3
     
-def open_door():
+
+def open_door(spelare):
     while True:
         try:
             val = int(input("Vilken dörr vill du öppna (1,2,3)? -> "))
-            if val > 3:
-                continue
-            break
+            if val <= 3 and val >= 0:
+                break
+            else:
+                print("Finns inte den mängd dörrar!")
         except ValueError:
-            print("Ogiltig input!")
-    skapa_dörr(val)
+            print(f"{Colors.red + Colors.bold}Ogiltig input!{Colors.end}")
+    dörr = skapa_dörr(val, spelare)
+    if dörr == 1:
+        skapa_kista(spelare)
+    elif dörr == 2:
+        skapa_monster(spelare)
+    elif dörr == 3:
+        skapa_fälla(spelare)
+    
 
-def kolla_inventory():
-    for index in inventory: print(f"Ditt inventory: {inventory(index)}")
+def kolla_inventory(spelare):
+    if len(spelare.inventory) == 0:
+        print("\nDu har inget i ditt inventory")
+    else: 
+        print("\nDitt inventory:")
+        for item in spelare.inventory: 
+            print(f"  > {item.name} (+{item.str_bonus})(str) (+{item.def_bonus})(def)")
+        print("")
+        
 
-def visa_egenskaper(self):
-    print("Din spelares styrka är {self.strength} och din spelares HP är {self.}")
 
-def choose():
+def visa_egenskaper(spelare):
+    print(f"\nDin karaktärs styrka är {spelare.strength}, din karaktärs försvar är {spelare.defence} din karaktärs HP är {spelare.hp} och din karaktärs lvl är {spelare.lvl}.\n")
+
+
+def choose(spelare):
     while True:
         val = input("Vad vill du göra? Öppna en dörr(1)? Kolla ditt inventory(2)? Eller visa dina egenskaper(3)? -> ")
-        if input == 1:
-            open_door()
+        if val == "1":
+            open_door(spelare)
             break
-        elif input == 2:
-            kolla_inventory()
+        elif val == "2":
+            kolla_inventory(spelare)
             break
-        elif input == 3:
-            visa_egenskaper()
+        elif val == "3":
+            visa_egenskaper(spelare)
             break
         else:
-            print("Ogiltig input")
+            print(f"{Colors.red + Colors.bold}Ogiltig input{Colors.end}")
+
+
+def game():
+    spelare = Player(5, 5)
+    while True:
+        check = lvl_hp_kolla(spelare)
+        if check == 1:
+            print ("Du förlorade :(")
+            break
+        elif check == 2:
+            print(f"{Colors.bold + Colors.yellow}Du vann :){Colors.end}")
+            break
+        else:
+            pass
+        choose(spelare)
+
+
+game()
