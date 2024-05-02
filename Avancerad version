@@ -1,4 +1,5 @@
 import random as rand
+import time
 
 
 class Colors:
@@ -7,7 +8,6 @@ class Colors:
     green = "\u001b[32m"
     black = "\u001b[30m"
     bold = "\u001b[1m"
-    reverse = "\u001b[7m"
     background = "\u001b[47m"
     endc = "\u001b[0m"
 
@@ -33,9 +33,9 @@ class Stats: #Hur starka monstrerna och spelarna är
 class Dörr: # Dörrarna bestäms ifall de innehåller ett monster, en kista eller en fälla
     def bestäm(spelare):
         best_tal = rand.randint(1,10)
-        if best_tal > 6:
+        if best_tal > 5:
             fall = 1
-        elif best_tal < 6:
+        elif best_tal < 5:
             fall = 2
         else:
             fall = 3
@@ -43,8 +43,16 @@ class Dörr: # Dörrarna bestäms ifall de innehåller ett monster, en kista ell
     
 
 item_names = ["Bracelet", "Necklace", "Magic Scroll", "Sword", "Battleaxe", "Bow", "Spear", "Dagger", "Shield", "Chestplate", "Health potion"]
+item_prefix = ["Holy", "Cursed"]
 
-        
+
+def slow_print(text,tid):
+    for i in text:
+        print(i, end="", flush=True)
+        time.sleep(tid)
+    print()
+
+
 def skapa_monster(spelare): # Skapar ett monster och sköter "slagsmålet"
     if spelare.lvl < 5:
         monstret = Stats(rand.randint(5,10),rand.randint(5,10), 0, rand.randint(30,50))
@@ -70,30 +78,53 @@ def skapa_monster(spelare): # Skapar ett monster och sköter "slagsmålet"
             break
         else:
             print(f"{Colors.bold + Colors.red}Ogiltig input!{Colors.endc}")
-                
+
 
 def skapa_kista(spelare): #Skapar en kista
     item = skapa_item(spelare)
     if item.name == "Health potion":
-        print(f"{Colors.green}Du har hittat ett item! Ditt item är en health potion det ger din karaktär mer liv, HP +10{Colors.endc}")
+        print(f"{Colors.green}Du har hittat ett item! Ditt item är en health potion det ger din karaktär mer liv, HP +15{Colors.endc}")
     else:
         print(f"{Colors.green}\nDu har hittat ett item!\nDitt item är <<{item.name}>>{Colors.endc}\n  {Colors.black + Colors.background} +{item.str_bonus} STR {Colors.endc} {Colors.black + Colors.background} +{item.def_bonus} DEF {Colors.endc}\n")
+        exists = False
+        for equipement in spelare.inventory:
+            if item.name == equipement.name:
+                exists = True
+                print("Du har redan ett item med samma namn, vill du byta ut det du har mot det du hittade?")
+                print(f"Ditt item: <<{item.name}>> (+{equipement.str_bonus} STR) (+{equipement.def_bonus})")
+                val = input("Ja/Nej -> ")
+                if val.lower().replace(" ", "").replace(".", "") == "ja":
+                    spelare.strength -= equipement.str_bonus
+                    spelare.defence -= equipement.def_bonus
+                    spelare.inventory.remove(equipement)
+                    spelare.inventory.append(item)
+                    spelare.strength += item.str_bonus
+                    spelare.defence += item.def_bonus
+                    print("Du har valt att byta ut ditt item.\n")
+                    break
+                elif val.lower().replace(" ", "").replace(".", "") == "nej":
+                    print("Du har valt att behålla ditt item.\n")
+                    break
+                else:
+                    print(f"{Colors.red + Colors.bold}Ogiltig input!{Colors.endc}")
         if len(spelare.inventory) < 5 and item.name not in spelare.inventory: #Tittar om du får plats med det item du hittade och tittar så att du inte redan har ett sånt item
             spelare.strength += item.str_bonus
             spelare.defence += item.def_bonus
             spelare.inventory.append(item)
         else:
             while True:
+                if exists is True:
+                    break
                 print("Ditt inventory:")
+                nummer = 1
                 for it in spelare.inventory: #Skriver ut hela ditt inventory
-                        print(f"  > {it.name} (+{it.str_bonus} STR) (+{it.def_bonus} DEF)")
-                if item.name in spelare.inventory:
-                    val = input("Du har redan ett item med samma namn, vill du byta ut det du har mot det du hittade? Ja(1)/Nej(2) -> ")
+                        print(f"  {nummer}: {it.name} (+{it.str_bonus} STR) (+{it.def_bonus} DEF)")
+                        nummer += 1
                 val = input("Ditt inventory är fullt, vill du byta ut ett item (1) eller lämna kvar det (2)? -> ")
                 if val == "1":
                     while True:
                         try:
-                            valda_item = int(input("Välj vilken index du vill byta ut med (0-4) -> ")) #Om vi har tid ändrar vi så att vi kan skriva namnet på itemet
+                            valda_item = int(input("Välj vilket item du vill byta ut med (1-5) -> "))-1 #Om vi har tid ändrar vi så att vi kan skriva namnet på itemet
                             if valda_item > 5 or valda_item < 0:
                                 print("Du har inte så många items.")
                             else:
@@ -106,6 +137,7 @@ def skapa_kista(spelare): #Skapar en kista
                     spelare.inventory.append(item)
                     spelare.strength += item.str_bonus
                     spelare.defence += item.def_bonus
+                    print("Ditt item har bytts ut!\n")
                     break
                 elif val == "2":
                     break
@@ -130,15 +162,17 @@ def skapa_fälla(spelare): #Skapar en fälla och tar bort hp från spelaren
 
 def skapa_item(spelare): #Skapar ett item, det kan ha olika bonusar beroende på vad namnet är.
     index_val = rand.randint(0,10)
-    if item_names[index_val] == "Bracelet" or item_names[index_val] == "Necklace" or item_names[index_val] == "Magic Scroll":
-        skapade_item = Items(item_names[index_val], rand.randint(0,2), rand.randint(0,2))
+    if item_names[index_val] == "Bracelet" or item_names[index_val] == "Necklace":
+        skapade_item = Items(item_names[index_val], rand.randint(0,3), rand.randint(0,3))
     elif item_names[index_val] == "Sword" or item_names[index_val] == "Battleaxe" or item_names[index_val] == "Bow" or item_names[index_val] == "Spear" or item_names[index_val] == "Dagger":
-        skapade_item = Items(item_names[index_val], rand.randint(1,3), rand.randint(0,0))
+        skapade_item = Items(item_names[index_val], rand.randint(1,4), rand.randint(0,0))
+    elif item_names[index_val] == "Magic Scroll":
+        skapade_item = Items(item_names[index_val], 0, 0)
     elif item_names[index_val] == "Health potion":
-        spelare.hp += 10
+        spelare.hp += 15
         skapade_item = Items(item_names[index_val], 0, 0)
     elif item_names[index_val] == "Shield" or item_names[index_val] == "Chestplate":
-        skapade_item = Items(item_names[index_val], rand.randint(0,0), rand.randint(1,3))
+        skapade_item = Items(item_names[index_val], rand.randint(0,0), rand.randint(1,4))
     return skapade_item
 
 
@@ -181,7 +215,7 @@ def open_door(spelare):
         skapa_monster(spelare)
     elif dörr == 3:
         skapa_fälla(spelare)
-    
+
 
 def kolla_inventory(spelare):
     if len(spelare.inventory) == 0:
@@ -190,7 +224,7 @@ def kolla_inventory(spelare):
         print("\nDitt inventory:")
         for item in spelare.inventory: 
             print(f"  > {item.name} (+{item.str_bonus} STR) (+{item.def_bonus} DEF)")
-        print("")
+        print()
         
 
 def visa_egenskaper(spelare):
@@ -225,7 +259,8 @@ def combat(spelare, monster):
                 if player_dmg > monster.defence//2:
                     print(f"Monstret tar {player_dmg - monster.defence//2} skada.")
                     monster.hp -= player_dmg - (monster.defence//2)
-                    print(f"Den har nu {monster.hp} HP\n")
+                    if monster.hp > 0:
+                        print(f"Den har nu {monster.hp} HP\n")
                 else:
                     print("Monstrets försvar var för högt och tog därför ingen skada!\n")
                 if monster.hp > 0:
@@ -236,7 +271,8 @@ def combat(spelare, monster):
                     else:
                         print(f"Du tog {monster_dmg - spelare.defence//2} skada.")
                         spelare.hp-=monster_dmg-spelare.defence//2
-                        print(f"Spelarens HP är nere på {spelare.hp}\n")
+                        if spelare.hp > 0:
+                            print(f"Spelarens HP är nere på {spelare.hp}\n")
 
             elif choice == "2":
                 har_scroll = False
@@ -246,7 +282,8 @@ def combat(spelare, monster):
                         scroll_dmg = rand.randint(10, 20)
                         print(f"Din Magic Scroll gör {scroll_dmg} skada!")
                         monster.hp -= scroll_dmg
-                        print(f"Monstrets HP är nu {monster.hp}")
+                        if monster.hp > 0:
+                            print(f"Monstrets HP är nu {monster.hp}")
                         print("Din Magic Scroll brinner upp för du använde den.")
                         spelare.inventory.remove(item)
                         har_scroll = True
@@ -265,8 +302,11 @@ def combat(spelare, monster):
                         print("Din rustning var för stark för monstrets attack.")
                     else:
                         print(f"Du tog {monster_dmg - spelare.defence//2} skada.")
-                        spelare.hp-=monster_dmg-spelare.defence//2
-                        print(f"Spelarens HP är nere på {spelare.hp}\n")
+                        spelare.hp -= monster_dmg-spelare.defence//2
+                        if spelare.hp > 0:
+                            print(f"Spelarens HP är nere på {spelare.hp}\n")
+                        else:
+                            print()
                 else:
                     print("Du lyckades rymma!")
                     break
@@ -289,17 +329,17 @@ def choose(spelare):
         else:
             print(f"{Colors.red + Colors.bold}Ogiltig input{Colors.endc}")
 
-
 def skapa_karaktär():
     poäng = 15
     defence = 0
     strength = 0
     dexterity = 0
-    print("Du ska skapa din karaktär du har sammanlagt 15 poäng att spendera på STR, DEF och DEX")
+    slow_print("Du ska skapa din karaktär du har sammanlagt 15 poäng att spendera på STR, DEF och DEX",0.02)
     while poäng > 0:
         try:
-            print(f"Du har {poäng} poäng att spendera på försvar:")
-            input_DEF = int(input("Hur många poäng vill du spendera på försvar? -> "))
+            slow_print(f"Du har {poäng} poäng att spendera på försvar.",0.02)
+            slow_print("Hur många poäng vill du spendera på försvar?",0.02)
+            input_DEF = int(input("-> "))
             if input_DEF <= poäng:
                 poäng -= input_DEF
                 defence += input_DEF
@@ -309,8 +349,9 @@ def skapa_karaktär():
             print("Det är inte en siffra!")
         if poäng != 0:
             try:
-                print(f"Du har {poäng} poäng att spendera på styrka:")
-                input_STR = int(input("Hur många poäng vill du spendera på styrka? -> "))
+                slow_print(f"Du har {poäng} poäng att spendera på styrka.",0.02)
+                slow_print("Hur många poäng vill du spendera på styrka?",0.02)
+                input_STR = int(input("-> "))
                 if input_STR <= poäng:
                     poäng -= input_STR
                     strength += input_STR
@@ -322,8 +363,9 @@ def skapa_karaktär():
             input_STR = 0
         if poäng != 0:
             try:
-                print(f"Du har {poäng} poäng att spendera på skicklighet")
-                input_DEX = int(input("Hur många vill du spendera på skicklighet? -> "))
+                slow_print(f"Du har {poäng} poäng att spendera på skicklighet",0.02)
+                slow_print("Hur många vill du spendera på skicklighet?",0.02)
+                input_DEX = int(input("-> "))
                 if input_DEX <= poäng:
                     poäng -= input_DEX
                     dexterity += input_DEX
@@ -336,7 +378,6 @@ def skapa_karaktär():
     spelare = Stats(strength, defence, dexterity, 50)
     print("")
     return spelare
-
 
 def game():
     spelare = skapa_karaktär()
@@ -351,9 +392,7 @@ def game():
         else:
             choose(spelare)
             if spelare.hp < 1:
-                print("Du har förlorat ett liv!\n")
+                slow_print("Du har förlorat ett liv!\n",0.03)
                 spelare.lives -= 1
                 spelare.hp = 50
-
-
 game()
