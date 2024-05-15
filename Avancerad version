@@ -1,8 +1,8 @@
-import random as rand
-import time
+from random import randint,choice
+from time import sleep
 
 
-class Colors:
+class Colors: #Färger
     red = "\u001b[31m"
     yellow = "\u001b[33m"
     green = "\u001b[32m"
@@ -13,10 +13,16 @@ class Colors:
 
 
 class Items: #Alla items
-    def __init__(self, name, attack_bonus, defence_bonus):
+    def __init__(self, name, attack_bonus, defence_bonus, holy=False, cursed=False):
         self.name = name
         self.str_bonus = attack_bonus
         self.def_bonus = defence_bonus
+        self.holy = holy
+        self.cursed = cursed
+        if "Holy" in self.name:
+            self.holy = True
+        elif "Cursed" in self.name:
+            self.cursed = True
 
 
 class Stats: #Hur starka monstrerna och spelarna är 
@@ -32,7 +38,7 @@ class Stats: #Hur starka monstrerna och spelarna är
 
 class Dörr: # Dörrarna bestäms ifall de innehåller ett monster, en kista eller en fälla
     def bestäm(spelare):
-        best_tal = rand.randint(1,10)
+        best_tal = randint(1,10)
         if best_tal > 5:
             fall = 1
         elif best_tal < 5:
@@ -46,26 +52,105 @@ item_names = ["Bracelet", "Necklace", "Magic Scroll", "Sword", "Battleaxe", "Bow
 item_prefix = ["Holy", "Cursed"]
 
 
-def slow_print(text,tid):
+def slow_print(text, tid): #Funktion för att printa ut texten långsamt
     for i in text:
         print(i, end="", flush=True)
-        time.sleep(tid)
+        sleep(tid)
     print()
+
+
+def skapa_karaktär(): #Skapar din karaktär
+    poäng = 15
+    defence = 0
+    strength = 0
+    dexterity = 0
+    slow_print("Du ska skapa din karaktär du har sammanlagt 15 poäng att spendera på Styrka (STR), Försvar (DEF) och Skicklighet (DEX)",0.02)
+    slow_print("Behöver du en förklaring av alla stats?", 0.02)
+    while True:
+        förklaring = input("'Ja' eller 'Nej' -> ")
+        if förklaring.lower().replace(" ", "").replace(".", "") == "ja":
+            slow_print("""Styrka används för att göra mer skada på monstrerna med dina vapen eller händer.
+Försvar används för att ta mindre skada från monster.
+Skicklighet används för att undvika fällor och monster (om du har 0 skicklighet är det omöjligt att fly!)\n""", 0.02)
+            break
+        elif förklaring.lower().replace(" ", "").replace(".", "") not in ["nej", "ja"]:
+            print(f"{Colors.red + Colors.bold}Ogiltig input!{Colors.endc}")
+        else:
+            break
+    print("\n----------------------")
+    while poäng > 0:
+        try:
+            print()
+            slow_print(f"Du har {poäng} poäng att spendera.",0.02)
+            slow_print("Hur många poäng vill du spendera på styrka?",0.02)
+            input_STR = int(input("-> "))
+            if input_STR <= poäng:
+                poäng -= input_STR
+                strength += input_STR
+            else:
+                print("Du har inte så många poäng!")
+        except ValueError:
+            print("Det är inte en siffra!")
+        if poäng != 0:
+            try:
+                print()
+                slow_print(f"Du har {poäng} poäng att spendera.",0.02)
+                slow_print("Hur många poäng vill du spendera på försvar?",0.02)
+                input_DEF = int(input("-> "))
+                if input_DEF <= poäng:
+                    poäng -= input_DEF
+                    defence += input_DEF
+                else: 
+                    print("Du har inte så många poäng!")
+            except ValueError:
+                print("Det är inte en siffra!")
+            else:
+                input_STR = 0
+        if poäng != 0:
+            try:
+                print()
+                slow_print(f"Du har {poäng} poäng att spendera.",0.02)
+                slow_print("Hur många vill du spendera på skicklighet?",0.02)
+                input_DEX = int(input("-> "))
+                if input_DEX <= poäng:
+                    poäng -= input_DEX
+                    dexterity += input_DEX
+                else:
+                    print("Du har inte så många poäng!")
+            except ValueError:
+                print("Det är inte en siffra!")
+        else:
+            input_DEX = 0
+    spelare = Stats(strength, defence, dexterity, 50)
+    print()
+    return spelare
+
+
+def skapa_dörr(choice, spelare): #Skapar en dörr
+    dörr_1 = Dörr.bestäm(spelare)
+    dörr_2 = Dörr.bestäm(spelare)
+    dörr_3 = Dörr.bestäm(spelare)
+    if choice == 1:
+        return dörr_1
+    elif choice == 2:
+        return dörr_2
+    else: 
+        return dörr_3
 
 
 def skapa_monster(spelare): # Skapar ett monster och sköter "slagsmålet"
     if spelare.lvl < 5:
-        monstret = Stats(rand.randint(5,10),rand.randint(5,10), 0, rand.randint(30,50))
+        monstret = Stats(randint(5,10),randint(5,10), 0, randint(30,50))
     elif spelare.lvl < 8:
-        monstret = Stats(rand.randint(8,15),rand.randint(8,15),0,rand.randint(40,70))
+        monstret = Stats(randint(8,15),randint(8,15),0,randint(40,70))
     else:
-         monstret = Stats(rand.randint(10,18),rand.randint(10,18),0,rand.randint(60,100))
+         monstret = Stats(randint(10,18),randint(10,18),0,randint(60,100))
     print(f"\nDu stöter på ett monster bakom dörren den har styrkan {monstret.strength}, försvaret {monstret.defence} och hp {monstret.hp}")
     while True:
         första_val = input("Vill du slåss(1) eller försöka rymma(2)? -> ")
         if första_val == "2":
             sannolikhet = ((spelare.dexterity)*5)
-            rng = rand.randint(1,100)
+            rng = randint(1,100)
             if rng > sannolikhet:
                 print(f"{Colors.red}Du lyckades inte rymma och måste slåss!{Colors.endc}")
                 combat(spelare, monstret)
@@ -92,22 +177,24 @@ def skapa_kista(spelare): #Skapar en kista
                 exists = True
                 print("Du har redan ett item med samma namn, vill du byta ut det du har mot det du hittade?")
                 print(f"Ditt item: <<{item.name}>> (+{equipement.str_bonus} STR) (+{equipement.def_bonus})")
-                val = input("Ja/Nej -> ")
-                if val.lower().replace(" ", "").replace(".", "") == "ja":
-                    spelare.strength -= equipement.str_bonus
-                    spelare.defence -= equipement.def_bonus
-                    spelare.inventory.remove(equipement)
-                    spelare.inventory.append(item)
-                    spelare.strength += item.str_bonus
-                    spelare.defence += item.def_bonus
-                    print("Du har valt att byta ut ditt item.\n")
-                    break
-                elif val.lower().replace(" ", "").replace(".", "") == "nej":
-                    print("Du har valt att behålla ditt item.\n")
-                    break
-                else:
-                    print(f"{Colors.red + Colors.bold}Ogiltig input!{Colors.endc}")
-        if len(spelare.inventory) < 5 and item.name not in spelare.inventory: #Tittar om du får plats med det item du hittade och tittar så att du inte redan har ett sånt item
+                while True:
+                    val = input("Ja/Nej -> ")
+                    if val.lower().replace(" ", "").replace(".", "") == "ja":
+                        spelare.strength -= equipement.str_bonus
+                        spelare.defence -= equipement.def_bonus
+                        spelare.inventory.remove(equipement)
+                        spelare.inventory.append(item)
+                        spelare.strength += item.str_bonus
+                        spelare.defence += item.def_bonus
+                        print("Du har valt att byta ut ditt item.\n")
+                        break
+                    elif val.lower().replace(" ", "").replace(".", "") == "nej":
+                        print("Du har valt att behålla ditt item.\n")
+                        break
+                    else:
+                        print(f"{Colors.red + Colors.bold}Ogiltig input!{Colors.endc}")
+                break
+        if len(spelare.inventory) < 5 and exists is False: #Tittar om du får plats med det item du hittade och tittar så att du inte redan har ett sånt item
             spelare.strength += item.str_bonus
             spelare.defence += item.def_bonus
             spelare.inventory.append(item)
@@ -140,17 +227,18 @@ def skapa_kista(spelare): #Skapar en kista
                     print("Ditt item har bytts ut!\n")
                     break
                 elif val == "2":
+                    print()
                     break
                 else: 
                     print(f"{Colors.bold + Colors.red}Ogiltig input{Colors.endc}")
                 
 
 def skapa_fälla(spelare): #Skapar en fälla och tar bort hp från spelaren
-    skada = rand.randint(1,5)
+    skada = randint(1,5)
     print(f"\nDu hamnar i en fälla!")
     input(f"Klicka på {Colors.bold}Enter{Colors.endc} för att försöka fly!")
     sannolikhet = ((spelare.dexterity)*5)
-    rng = rand.randint(1,100)
+    rng = randint(1,100)
     if rng > sannolikhet:
         print(f"{Colors.red}Du lyckades inte undvika fällan!{Colors.endc}")
         print(f"Du tar {skada} skada!\n")
@@ -159,20 +247,30 @@ def skapa_fälla(spelare): #Skapar en fälla och tar bort hp från spelaren
         print("Du lyckades undvika fällan!\n")
 
 
-
 def skapa_item(spelare): #Skapar ett item, det kan ha olika bonusar beroende på vad namnet är.
-    index_val = rand.randint(0,10)
-    if item_names[index_val] == "Bracelet" or item_names[index_val] == "Necklace":
-        skapade_item = Items(item_names[index_val], rand.randint(0,3), rand.randint(0,3))
-    elif item_names[index_val] == "Sword" or item_names[index_val] == "Battleaxe" or item_names[index_val] == "Bow" or item_names[index_val] == "Spear" or item_names[index_val] == "Dagger":
-        skapade_item = Items(item_names[index_val], rand.randint(1,4), rand.randint(0,0))
-    elif item_names[index_val] == "Magic Scroll":
-        skapade_item = Items(item_names[index_val], 0, 0)
-    elif item_names[index_val] == "Health potion":
+    name = choice(item_names)
+    chans = randint(1, 10)
+    if chans > 0:
+        prefix = choice(item_prefix) + " "
+    else:
+        prefix = ""
+    if name in ["Bracelet", "Necklace"]:
+        skapade_item = Items(name, randint(0,3), randint(0,3))
+    elif name in ["Sword", "Battleaxe", "Bow", "Spear", "Dagger"]:
+        if prefix.strip() == "Holy":
+            boost = 5
+        elif prefix.strip() == "Cursed":
+            boost = 3
+        else:
+            boost = 0
+        skapade_item = Items((prefix + name), randint((1 + boost), (4 + boost)), randint(0,0))
+    elif name == "Magic Scroll":
+        skapade_item = Items(name, 0, 0)
+    elif name == "Health potion":
         spelare.hp += 15
-        skapade_item = Items(item_names[index_val], 0, 0)
-    elif item_names[index_val] == "Shield" or item_names[index_val] == "Chestplate":
-        skapade_item = Items(item_names[index_val], rand.randint(0,0), rand.randint(1,4))
+        skapade_item = Items(name, 0, 0)
+    elif name in ["Shield", "Chestplate"]:
+        skapade_item = Items(name, randint(0,0), randint(1,4))
     return skapade_item
 
 
@@ -184,25 +282,13 @@ def lvl_lives_kolla(self): #Funktion som kollar i början av varje runda ifall s
     else:
         ret_tal = 3
     return ret_tal
-
-
-def skapa_dörr(choice, spelare): #Skapar en dörr
-    dörr_1 = Dörr.bestäm(spelare)
-    dörr_2 = Dörr.bestäm(spelare)
-    dörr_3 = Dörr.bestäm(spelare)
-    if choice == 1:
-        return dörr_1
-    elif choice == 2:
-        return dörr_2
-    else: 
-        return dörr_3
     
 
-def open_door(spelare):
+def open_door(spelare): #Öppnar en dörr
     while True:
         try:
-            val = int(input(Colors.black + "Vilken dörr vill du öppna (1,2,3)? -> " + Colors.endc))
-            if val <= 3 and val >= 0:
+            val = int(input(Colors.black + "   Vilken dörr vill du öppna (1, 2, 3)? -> " + Colors.endc))
+            if val in [1, 2, 3]:
                 break
             else:
                 print(Colors.red + "Finns inte den mängd dörrar!" + Colors.endc)
@@ -217,7 +303,7 @@ def open_door(spelare):
         skapa_fälla(spelare)
 
 
-def kolla_inventory(spelare):
+def kolla_inventory(spelare): #Kollar spelarens inventory
     if len(spelare.inventory) == 0:
         print("\nDu har inget i ditt inventory\n")
     else: 
@@ -227,15 +313,24 @@ def kolla_inventory(spelare):
         print()
         
 
-def visa_egenskaper(spelare):
+def visa_egenskaper(spelare): #Visar spelarens egenskaper
     print(f"\nDina egenskaper:\n   > Styrka: {spelare.strength}\n   > Försvar: {spelare.defence}\n   > Skicklighet: {spelare.dexterity}\n   > HP: {spelare.hp}\n   > LVL: {spelare.lvl}\n   > Liv: {spelare.lives}\n")
 
 
-def combat(spelare, monster):
-    if "Sword" or "Bow" or "Battleaxe" or "Spear" or "Dagger" in spelare.inventory:
-        player_dmg_type = "weapon"
+def combat(spelare, monster): #Sköter combat systemet när man slåss mot ett monster
+    if len(spelare.inventory) > 0:
+        for item in spelare.inventory:
+            if "Holy" in item.name or "Cursed" in item.name:
+                player_dmg_type = "weapon"
+                break
+            if item.name in ["Sword", "Bow", "Battleaxe", "Spear", "Dagger"]:
+                player_dmg_type = "weapon"
+                break
+            else:
+                player_dmg_type = "fist"
     else:
         player_dmg_type = "fist"
+
     while True:
         if monster.hp <= 0:
             print("Monstret dog och du vann!\n")
@@ -249,13 +344,34 @@ def combat(spelare, monster):
             break
         else:
             print("Vad vill du göra?")
-            choice = input("   > Anfalla med vapen (1)\n   > Använda en Magic Scroll(2)\n   > Fly (3)\n   -> ")
-            if choice == "1":
+            choice = input("   > Anfalla med vapen (1)\n   > Använda en Magic Scroll (2)\n   > Fly (3)\n   -> ")
+            if choice == "1":             
                 print("\nDu anfaller monstret.")
                 if player_dmg_type == "weapon":
-                    player_dmg = rand.randint(1, 10)+spelare.strength
+                    for i in spelare.inventory:
+                        if i.cursed is True:
+                            while True:
+                                print("Du har ett item som är förbannat, det kommer att göra skada mot dig om du använder det.\nVill du använda det?")
+                                choice_curse = input("Ja (1)/Nej (2) -> ")
+                                if choice_curse == "1" or choice_curse.lower().replace(" ", ""):
+                                    damage = randint(3,6)
+                                    monster.hp -= damage
+                                    spelare.hp -= damage//2
+                                    print(f"Du använder vapnet och gör {damage} extra skada till monstret.\nMen du tar själv {damage//2} skada")
+                                    break
+                                elif choice_curse == "2" or choice_curse.lower().replace(" ", ""):
+                                    spelare.strengh -= i.str_bonus
+                                    player_dmg = randint(1, 10)+spelare.strength
+                                    spelare.strength += i.str_bonus
+                                    break
+                                else:
+                                    print("Ogiltigt input!")
+                            break
+                        else:
+                            player_dmg = randint(1, 10)+spelare.strength
+                    
                 else:
-                    player_dmg = rand.randint(1, 4)+spelare.strength
+                    player_dmg = randint(1, 4)+spelare.strength
                 if player_dmg > monster.defence//2:
                     print(f"Monstret tar {player_dmg - monster.defence//2} skada.")
                     monster.hp -= player_dmg - (monster.defence//2)
@@ -264,7 +380,7 @@ def combat(spelare, monster):
                 else:
                     print("Monstrets försvar var för högt och tog därför ingen skada!\n")
                 if monster.hp > 0:
-                    monster_dmg = rand.randint(1, 5) + monster.strength
+                    monster_dmg = randint(1, 5) + monster.strength
                     print("Monstret anfaller dig!")
                     if monster_dmg < spelare.defence//2:
                         print("Din rustning var för stark för monstrets attack!")
@@ -279,7 +395,7 @@ def combat(spelare, monster):
                 for item in spelare.inventory:
                     if item.name == "Magic Scroll":
                         print("Du har använt en Magic Scroll!")
-                        scroll_dmg = rand.randint(10, 20)
+                        scroll_dmg = randint(10, 20)
                         print(f"Din Magic Scroll gör {scroll_dmg} skada!")
                         monster.hp -= scroll_dmg
                         if monster.hp > 0:
@@ -293,11 +409,11 @@ def combat(spelare, monster):
                 
             elif choice == "3":
                 sannolikhet = ((spelare.dexterity)*5)
-                rng = rand.randint(1,100)
+                rng = randint(1,100)
                 if rng > sannolikhet:
                     print(f"\n{Colors.red}Du lyckades inte rymma och måste slåss!{Colors.endc}")
                     print("Monstret anfaller dig!")
-                    monster_dmg = rand.randint(1, 5) + monster.strength//2
+                    monster_dmg = randint(1, 5) + monster.strength//2
                     if monster_dmg < spelare.defence//2:
                         print("Din rustning var för stark för monstrets attack.")
                     else:
@@ -314,9 +430,10 @@ def combat(spelare, monster):
                 print(f"{Colors.red}Det var inte ett val!{Colors.endc}")
 
 
-def choose(spelare):
+def choose(spelare): #Ser till att du kan välja vad du vill göra
     while True:
-        val = input("Vad vill du göra? Öppna en dörr (1)\nKolla ditt inventory (2)\nEller visa dina egenskaper (3)\n-> ")
+        print("----------------------")
+        val = input("Vad vill du göra?\n   Öppna en dörr (1)\n   Kolla ditt inventory (2)\n   Eller visa dina egenskaper (3)\n   -> ")
         if val == "1":
             open_door(spelare)
             break
@@ -329,70 +446,21 @@ def choose(spelare):
         else:
             print(f"{Colors.red + Colors.bold}Ogiltig input{Colors.endc}")
 
-def skapa_karaktär():
-    poäng = 15
-    defence = 0
-    strength = 0
-    dexterity = 0
-    slow_print("Du ska skapa din karaktär du har sammanlagt 15 poäng att spendera på STR, DEF och DEX",0.02)
-    while poäng > 0:
-        try:
-            slow_print(f"Du har {poäng} poäng att spendera på försvar.",0.02)
-            slow_print("Hur många poäng vill du spendera på försvar?",0.02)
-            input_DEF = int(input("-> "))
-            if input_DEF <= poäng:
-                poäng -= input_DEF
-                defence += input_DEF
-            else: 
-                print("Du har inte så många poäng!")
-        except ValueError:
-            print("Det är inte en siffra!")
-        if poäng != 0:
-            try:
-                slow_print(f"Du har {poäng} poäng att spendera på styrka.",0.02)
-                slow_print("Hur många poäng vill du spendera på styrka?",0.02)
-                input_STR = int(input("-> "))
-                if input_STR <= poäng:
-                    poäng -= input_STR
-                    strength += input_STR
-                else:
-                    print("Du har inte så många poäng!")
-            except ValueError:
-                print("Det är inte en siffra!")
-        else:
-            input_STR = 0
-        if poäng != 0:
-            try:
-                slow_print(f"Du har {poäng} poäng att spendera på skicklighet",0.02)
-                slow_print("Hur många vill du spendera på skicklighet?",0.02)
-                input_DEX = int(input("-> "))
-                if input_DEX <= poäng:
-                    poäng -= input_DEX
-                    dexterity += input_DEX
-                else:
-                    print("Du har inte så många poäng!")
-            except ValueError:
-                print("Det är inte en siffra!")
-        else:
-            input_DEX = 0
-    spelare = Stats(strength, defence, dexterity, 50)
-    print("")
-    return spelare
 
-def game():
+def game(): #Samlar massor av funktioner och tittar om du har vunnit eller inte
     spelare = skapa_karaktär()
     while True:
         check = lvl_lives_kolla(spelare)
         if check == 1:
-            print(f"{Colors.red + Colors.bold}Du förlorade :({Colors.endc}")
+            slow_print(f"{Colors.red + Colors.bold}Du förlorade :({Colors.endc}", 0.06)
             break
         elif check == 2:
-            print(f"{Colors.bold + Colors.yellow}Du vann :){Colors.endc}")
+            slow_print(f"{Colors.bold + Colors.yellow}Du vann :){Colors.endc}", 0.05)
             break
         else:
             choose(spelare)
             if spelare.hp < 1:
-                slow_print("Du har förlorat ett liv!\n",0.03)
+                slow_print("Du har förlorat ett liv!\n", 0.04)
                 spelare.lives -= 1
                 spelare.hp = 50
-game()
+game() #Kör spelet
