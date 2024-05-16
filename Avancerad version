@@ -209,12 +209,12 @@ def skapa_kista(spelare): #Skapar en kista
                 for it in spelare.inventory: #Skriver ut hela ditt inventory
                         print(f"  {nummer}: {it.name} (+{it.str_bonus} STR) (+{it.def_bonus} DEF)")
                         nummer += 1
-                val = input("Ditt inventory är fullt, vill du byta ut ett item (1) eller lämna kvar det (2)? -> ").lower().replace(" ", "").replace(".", "")
+                val = input("Ditt inventory är fullt, vill du byta ut ett item (1) eller lämna kvar det (2)? -> ").lower().strip().replace(".", "")
                 if val in ["1", "byta ut", "byta", "byt"]:
                     while True:
                         try:
-                            valda_item = int(input("Välj vilket item du vill byta ut med (1-5) -> "))-1 #Om vi har tid ändrar vi så att vi kan skriva namnet på itemet
-                            if valda_item > 5 or valda_item < 0:
+                            valda_item = int(input("Välj vilket item du vill byta ut med (1-5) -> ")) - 1 #Om vi har tid ändrar vi så att vi kan skriva namnet på itemet
+                            if valda_item > 4 or valda_item < 0:
                                 print("Du har inte så många items.")
                             else:
                                 break
@@ -295,7 +295,7 @@ def open_door(spelare): #Öppnar en dörr
             if val in ["1", "2", "3", "vänster", "fram", "framåt", "mitten", "höger"]:
                 break
             else:
-                print(Colors.red + "Finns inte den mängd dörrar!" + Colors.endc)
+                print(Colors.red + "   Finns inte den mängd dörrar!" + Colors.endc)
         except ValueError:
             print(f"{Colors.red + Colors.bold}Ogiltig input!{Colors.endc}")
     dörr = skapa_dörr(val, spelare)
@@ -361,7 +361,7 @@ def combat(spelare, monster): #Sköter combat systemet när man slåss mot ett m
                                     damage = randint(4,8)
                                     monster.hp -= damage
                                     spelare.hp -= damage//2
-                                    print(f"Du använder vapnet och gör {damage} extra skada till monstret.\nMen du tar själv {damage//2} skada")
+                                    print(f"\nDu använder vapnet och gör {damage} extra skada till monstret.\nMen du tar själv {damage//2} skada")
                                     player_dmg = randint(1, 10) + spelare.strength
                                     break
                                 elif choice_curse in ["2", "nej"]:
@@ -370,7 +370,7 @@ def combat(spelare, monster): #Sköter combat systemet när man slåss mot ett m
                                     spelare.strength += item.str_bonus
                                     break
                                 else:
-                                    print("Ogiltigt input!")
+                                    print(f"{Colors.red + Colors.bold}Ogiltigt input!{Colors.endc}")
                             break
                         else:
                             player_dmg = randint(1, 10)+spelare.strength
@@ -469,5 +469,18 @@ def game(): #Samlar massor av funktioner och tittar om du har vunnit eller inte
                 spelare.lives -= 1
                 spelare.hp = 50
 
-
-game() #Kör spelet
+while True: #Kör spelet
+    game() 
+    while True:
+        print("Vill du spela igen? Ja (1) eller Nej (2):")
+        igen = input("-> ").lower().replace(" ", "")
+        if igen in ["2", "nej"]:
+            slow_print(f"{Colors.green + Colors.bold}Tack för att du spelade! ^_^{Colors.endc}", 0.04)
+            break
+        elif igen in ["1", "ja"]:
+            slow_print("Då kör vi!", 0.04)
+            break
+        else:
+            print(f"{Colors.red + Colors.bold}Ogiltig input!{Colors.endc}")
+    if igen in ["2", "nej"]:
+        break
